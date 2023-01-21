@@ -25,20 +25,30 @@ export default class NewBill {
     formData.append('file', file)
     formData.append('email', email)
 
-    this.store
-      .bills()
-      .create({
-        data: formData,
-        headers: {
-          noContentType: true
-        }
-      })
-      .then(({fileUrl, key}) => {
-        console.log(fileUrl)
-        this.billId = key
-        this.fileUrl = fileUrl
-        this.fileName = fileName
-      }).catch(error => console.error(error))
+    const fileType = file.type.split('/')[0]; // Checking file type to prevent user from loading files that are not images
+    console.log(fileType)
+    if(fileType === 'image'){ // If file type is image, creating bill
+
+      this.store
+        .bills()
+        .create({
+          data: formData,
+          headers: {
+            noContentType: true
+          }
+        })
+        .then(({fileUrl, key}) => {
+          console.log(fileUrl)
+          this.billId = key
+          this.fileUrl = fileUrl
+          this.fileName = fileName
+        }).catch(error => console.error(error))
+
+    } else {
+      this.document.querySelector(`input[data-testid="file"]`).value = ""; // If file type is different from image, clearing file input and displaying an alert.
+      alert('test')
+    }
+
   }
   handleSubmit = e => {
     e.preventDefault()

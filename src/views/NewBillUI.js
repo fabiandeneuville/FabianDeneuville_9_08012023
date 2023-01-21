@@ -55,7 +55,10 @@ export default () => {
                   </div>
                   <div class="col-half">
                     <label for="file" class="bold-label">Justificatif</label>
-                    <input required type="file" class="form-control blue-border" data-testid="file" />
+
+                    <!-- Adding accept attribute to prevent user from loading files that are not images -->
+                    
+                    <input required type="file" class="form-control blue-border" data-testid="file" accept="image/jpg,image/jpeg,image/png"/> 
                   </div>
                 </div>
             </div>
