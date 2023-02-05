@@ -26,9 +26,7 @@ export default class NewBill {
     formData.append('email', email)
 
     const fileType = file.type.split('/')[0]; // Checking file type to prevent user from loading files that are not images
-    console.log(fileType)
     if(fileType === 'image'){ // If file type is image, creating bill
-
       this.store
         .bills()
         .create({
@@ -38,7 +36,6 @@ export default class NewBill {
           }
         })
         .then(({fileUrl, key}) => {
-          console.log(fileUrl)
           this.billId = key
           this.fileUrl = fileUrl
           this.fileName = fileName
@@ -46,7 +43,7 @@ export default class NewBill {
 
     } else {
       this.document.querySelector(`input[data-testid="file"]`).value = ""; // If file type is different from image, clearing file input and displaying an alert.
-      alert('test')
+      alert('Seuls les fichiers au format jpeg, jpg et png sont autorisés.')
     }
 
   }

@@ -3,16 +3,55 @@
  */
 
 import { screen } from "@testing-library/dom"
+import userEvent from "@testing-library/user-event";
+
+
 import NewBillUI from "../views/NewBillUI.js"
 import NewBill from "../containers/NewBill.js"
+import { localStorageMock } from "../__mocks__/localStorage.js";
+import { ROUTES } from "../constants/routes.js";
+import store from "../__mocks__/store.js";
 
+const onNavigate = (pathname) => {
+  document.body.innerHTML = ROUTES({ pathname })
+}
+
+const file = new File(['hello'], 'hello.png', {type: 'image/png'})
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
-    test("Then ...", () => {
+    beforeEach(() => {
       const html = NewBillUI()
-      document.body.innerHTML = html
-      //to-do write assertion
+      document.body.innerHTML = html;
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock }); // Simulating employee connection before each test
+      window.localStorage.setItem('user', JSON.stringify({type: 'Employee'}));
+    })
+    test("If form is submitted, handleSubmit function should be called", () => {
+      const newBillPage = new NewBill({ document, onNavigate, store, localStorage: window.localStorage }); // Setting newBill page
+      const handleSubmit = jest.fn(newBillPage.handleSubmit); // Simulating handleSubmit function
+      const submitButton = screen.getByText("Envoyer"); // Retrieving of submit button by Text
+      const newBillForm = screen.getByTestId("form-new-bill"); // Retrieving of Form by test-id 
+      newBillForm.addEventListener("submit", handleSubmit); // Listening to submit event on newBillForm. Submit event should trigger the handleSubmit function
+      userEvent.click(submitButton); // Simulating user click on submit button
+      expect(handleSubmit).toHaveBeenCalled(); // Expecting the handleSubmit function to have been called when submit button has been clicked
+    })
+    test("If file input value change, handleChangeFile function should be called", () => {
+      const newBillPage = new NewBill({ document, onNavigate, store, localStorage: window.localStorage }); // Setting newBill page
+      const handleChangeFile = jest.fn(newBillPage.handleChangeFile); // Simulating handleChangeFile function
+      const input = screen.getByTestId("file"); // Retrieving of input by test-id
+      input.addEventListener("change", handleChangeFile); // Listening to change event on input
+      const file = {name: 'test.png', type: 'image/png'}; // mocking file
+      userEvent.upload(input, file); // Simulating user file upload
+      expect(handleChangeFile).toHaveBeenCalled(); // Expecting handleChangeFile function to habe been called when user has upload a file
+    })
+    test("If file type is different from image, value should be cleared", () => {
+      const newBillPage = new NewBill({ document, onNavigate, store, localStorage: window.localStorage }); // Setting newBill page
+      const handleChangeFile = jest.fn(newBillPage.handleChangeFile); // Simulating handleChangeFile function
+      const input = screen.getByTestId("file"); // Retrieving of input by test-id
+      input.addEventListener("change", handleChangeFile); // Listening to change event on input
+      const file = {name: 'test.txt', type: 'text/plain'}; // mocking wrong file
+      userEvent.upload(input, file); // Simulating user file upload
+      expect(input.value).toEqual(""); // Expecting input to be cleared when file has wrong type
     })
   })
 })
