@@ -16,8 +16,6 @@ const onNavigate = (pathname) => {
   document.body.innerHTML = ROUTES({ pathname })
 }
 
-const file = new File(['hello'], 'hello.png', {type: 'image/png'})
-
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
     beforeEach(() => {
