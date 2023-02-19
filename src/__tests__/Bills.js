@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import {findAllByAltText, screen, waitFor} from "@testing-library/dom"
+import {screen, waitFor} from "@testing-library/dom"
 import userEvent from "@testing-library/user-event";
 import BillsUI from "../views/BillsUI.js"
 import Bills from "../containers/Bills.js";
@@ -13,7 +13,7 @@ import {localStorageMock} from "../__mocks__/localStorage.js";
 
 import router from "../app/Router.js";
 
-import store from "../__mocks__/store.js";
+import store from "../__mocks__/store";
 
 const onNavigate = (pathname) => {
   document.body.innerHTML = ROUTES({ pathname })
@@ -79,6 +79,49 @@ describe("Given I am connected as an employee", () => {
       icon.addEventListener("click", handleClickOnEyeIcon);
       userEvent.click(icon);
       expect(handleClickOnEyeIcon).toHaveBeenCalled();
+    })
+  })
+
+  describe('When an error occures', () => {
+    beforeEach(() => {
+      jest.spyOn(store, "bills")
+      Object.defineProperty(
+          window,
+          'localStorage',
+          { value: localStorageMock }
+      )
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee',
+        email: "a@a"
+      }))
+      const root = document.createElement("div")
+      root.setAttribute("id", "root")
+      document.body.appendChild(root)
+      router()
+    })
+    test("bills fetching fails with a 404 status response", async () => {
+      store.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error("Error 404"))
+          }
+        }
+      })
+      document.body.innerHTML = BillsUI({ error: "Erreur 404" });
+      const message = await screen.getByText(/Erreur 404/);
+      expect(message).toBeTruthy();
+    })
+    test("bills fetching fails with a 500 status response", async () => {
+      store.bills.mockImplementationOnce(() => {
+        return {
+          list: () => {
+            return Promise.reject(new Error("Erreur 500"))
+          }
+        }
+      })
+      document.body.innerHTML = BillsUI({ error: 'Erreur 500' });
+      const message = await screen.getByText(/Erreur 500/);
+      expect(message).toBeTruthy();
     })
   })
 })
