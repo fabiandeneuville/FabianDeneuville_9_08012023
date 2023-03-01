@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { screen } from "@testing-library/dom"
+import { screen, within } from "@testing-library/dom"
 import userEvent from "@testing-library/user-event";
 
 
@@ -11,6 +11,7 @@ import NewBill from "../containers/NewBill.js"
 import { localStorageMock } from "../__mocks__/localStorage.js";
 import { ROUTES } from "../constants/routes.js";
 import store from "../__mocks__/store.js";
+import { bills } from "../fixtures/bills.js"; // Importing bills fixtures
 
 const onNavigate = (pathname) => {
   document.body.innerHTML = ROUTES({ pathname })
@@ -52,4 +53,35 @@ describe("Given I am connected as an employee", () => {
       expect(input.value).toEqual(""); // Expecting input to be cleared when file has wrong type
     })
   })
+})
+
+// NEW BILL POST TEST
+describe('User is connected as an employee and submits new bill form with fields properly filled', () => {
+  test('user should be redirected', async () => {
+    const newBill = new NewBill({document, onNavigate, store, localStorage: window.localStorage});
+    const fixtureData = bills[1]; //
+    const form = screen.getByTestId("form-new-bill");
+    const handleSubmit = jest.fn(newBill.handleSubmit);   
+    const imageInput = screen.getByTestId("file");
+    const expenseInput = screen.getByTestId('expense-name');
+    const amountInput = screen.getByTestId('amount');
+    const dateInput = screen.getByTestId("datepicker");
+    const vatInput = screen.getByTestId("vat");
+    const pctInput = screen.getByTestId("pct");
+    const detailsInput = screen.getByTestId("commentary");
+    const file = {name: 'test.png', type: 'image/png'};
+    userEvent.type(expenseInput, fixtureData.name);
+    userEvent.type(amountInput, fixtureData.amount.toString());
+    userEvent.type(dateInput, fixtureData.date);
+    userEvent.type(vatInput, fixtureData.vat.toString());
+    userEvent.type(pctInput, fixtureData.pct.toString());
+    userEvent.type(detailsInput, fixtureData.commentary);
+    await userEvent.upload(imageInput, file);
+    const submitBtn = screen.getByTestId('submit-btn')
+    form.addEventListener("submit", handleSubmit);
+    userEvent.click(submitBtn);
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+    const heading = screen.getByText('Mes notes de frais');
+    expect(heading).toBeTruthy()
+  });
 })

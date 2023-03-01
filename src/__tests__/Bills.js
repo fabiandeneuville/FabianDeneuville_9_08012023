@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import {screen, waitFor} from "@testing-library/dom"
+import {screen, waitFor, within} from "@testing-library/dom"
 import userEvent from "@testing-library/user-event";
 import BillsUI from "../views/BillsUI.js"
 import Bills from "../containers/Bills.js";
@@ -79,6 +79,28 @@ describe("Given I am connected as an employee", () => {
       icon.addEventListener("click", handleClickOnEyeIcon);
       userEvent.click(icon);
       expect(handleClickOnEyeIcon).toHaveBeenCalled();
+    })
+  })
+
+// TEST REQUETE GET
+  describe('When user is connected as an employee and is on bills page', () => {
+    test("fetches ALL bills (4 as present in the mocked store) from mocked API GET", async () => {
+      jest.spyOn(store, "bills");
+      Object.defineProperty(window, "localStorage", {
+        value: localStorageMock,
+      });
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ type: "Employee", email: "a@a" })
+      );
+      const root = document.createElement("div");
+      root.setAttribute("id", "root");
+      document.body.append(root);
+      router();
+      window.onNavigate(ROUTES_PATH.Bills);
+      const table = screen.getByTestId("tbody");
+      expect(table).toBeTruthy();
+      expect(within(table).getAllByRole("row")).toHaveLength(4);
     })
   })
 
